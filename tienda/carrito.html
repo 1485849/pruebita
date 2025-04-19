@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Carrito de Compras</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #f8f9fa, #e9ecef);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      color: #343a40;
+      margin-bottom: 20px;
+    }
+
+    .carrito-container {
+      background: white;
+      padding: 20px;
+      width: 90%;
+      max-width: 800px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .producto {
+      display: flex;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #ddd;
+      animation: fadeIn 0.4s ease-in-out;
+    }
+
+    .producto:last-child {
+      border-bottom: none;
+    }
+
+    .producto img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-right: 15px;
+    }
+
+    .producto-info {
+      flex: 1;
+    }
+
+    .producto-info p {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .producto-controles {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 5px;
+    }
+
+    .acciones {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-finalizar { background: #28a745; color: white; }
+    .btn-vaciar { background: #dc3545; color: white; }
+    .btn-seguir { background: #007bff; color: white; }
+
+    input[type='number'],
+    input[type='text'] {
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    input:invalid, .invalido {
+      border-color: red;
+    }
+
+    .form-group {
+      margin-top: 10px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    #modalConfirmacion {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #modalConfirmacion .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    #modalConfirmacion button {
+      margin: 10px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <h1>🛒 Carrito </h1>
+  <div class="carrito-container" id="carrito"></div>
+
+  <div class="carrito-container">
+    <h3>Dirección de envío:</h3>
+    <div class="form-row">
+      <div class="form-group"><input type="text" id="nombre" placeholder="Nombre completo"></div>
+      <div class="form-group"><input type="text" id="direccion" placeholder="Dirección"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><input type="text" id="distrito" placeholder="Distrito"></div>
+      <div class="form-group"><input type="text" id="provincia" placeholder="Provincia"></div>
+      <div class="form-group"><input type="text" id="pais" placeholder="País"></div>
+    </div>
+  </div>
+
+  <div class="carrito-container acciones">
+    <button class="btn-seguir" onclick="seguirComprando()">Seguir comprando</button>
+    <button class="btn-vaciar" onclick="vaciarCarrito()">Vaciar carrito</button>
+    <button class="btn-finalizar" onclick="mostrarConfirmacion()">Finalizar compra</button>
+  </div>
+
+  <!-- Modal de confirmación -->
+  <div id="modalConfirmacion">
+    <div class="modal-content">
+      <h3>¿Confirmar compra?</h3>
+      <p>¿Estás seguro de finalizar tu compra?</p>
+      <button onclick="finalizarCompra()">Sí, confirmar</button>
+      <button onclick="cerrarModal()">Cancelar</button>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyD29FVCSz_1jwP9i22BphKQ8tgt4LOvtmk",
+      authDomain: "tiendabase-e4ec2.firebaseapp.com",
+      projectId: "tiendabase-e4ec2",
+      storageBucket: "tiendabase-e4ec2.appspot.com",
+      messagingSenderId: "102646137349",
+      appId: "1:102646137349:web:df171f6bd42f8ba30a126c",
+      measurementId: "G-24YRP1L40Y"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    function renderizarCarrito() {
+      const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+      const contenedor = document.getElementById("carrito");
+      contenedor.innerHTML = "";
+
+      let total = 0;
+
+      carrito.forEach((item, index) => {
+        total += item.precio * (item.cantidad || 1);
+        contenedor.innerHTML += `
+          <div class="producto">
+            <img src="${item.imagen || 'https://via.placeholder.com/80'}" alt="${item.nombre}">
+            <div class="producto-info">
+              <p><strong>${item.nombre}</strong><br>Precio: $${item.precio.toFixed(2)}</p>
+            </div>
+            <div class="producto-controles">
+              <input type="number" min="1" value="${item.cantidad || 1}" onchange="cambiarCantidad(${index}, this.value)">
+              <button onclick="eliminarProducto(${index})">❌</button>
+            </div>
+          </div>
+        `;
+      });
+
+      contenedor.innerHTML += `<h3>Total: $${total.toFixed(2)}</h3>`;
+    }
+
+    function seguirComprando() {
+      const volverA = localStorage.getItem("paginaAnterior");
+      window.location.href = volverA || "index.html";
+    }
+
+    function cambiarCantidad(index, cantidad) {
+      const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+      carrito[index].cantidad = parseInt(cantidad);
+      localStorage.setItem("carrito", JSON.stringify(carrito));
+      renderizarCarrito();
+    }
+
+    function eliminarProducto(index) {
+      const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+      carrito.splice(index, 1);
+      localStorage.setItem("carrito", JSON.stringify(carrito));
+      renderizarCarrito();
+    }
+
+    function vaciarCarrito() {
+      localStorage.removeItem("carrito");
+      renderizarCarrito();
+    }
+
+    function mostrarConfirmacion() {
+      const campos = ["nombre", "direccion", "distrito", "provincia", "pais"];
+      let validos = true;
+
+      campos.forEach(id => {
+        const input = document.getElementById(id);
+        if (!input.value.trim()) {
+          input.classList.add("invalido");
+          validos = false;
+        } else {
+          input.classList.remove("invalido");
+        }
+      });
+
+      if (validos) {
+        document.getElementById("modalConfirmacion").style.display = "flex";
+      } else {
+        alert("Por favor, completa todos los campos de dirección.");
+      }
+    }
+
+    function cerrarModal() {
+      document.getElementById("modalConfirmacion").style.display = "none";
+    }
+
+    function finalizarCompra() {
+      cerrarModal();
+      const usuario = firebase.auth().currentUser;
+      if (!usuario) {
+        alert("Debes iniciar sesión para finalizar la compra.");
+        return;
+      }
+
+      const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+      if (carrito.length === 0) {
+        alert("Tu carrito está vacío.");
+        return;
+      }
+
+      const nombre = document.getElementById("nombre").value.trim();
+      const direccion = document.getElementById("direccion").value.trim();
+      const distrito = document.getElementById("distrito").value.trim();
+      const provincia = document.getElementById("provincia").value.trim();
+      const pais = document.getElementById("pais").value.trim();
+      const direccionCompleta = `${nombre}, ${direccion}, ${distrito}, ${provincia}, ${pais}`;
+
+      const total = carrito.reduce((acc, item) => acc + (item.precio * (item.cantidad || 1)), 0);
+      const fecha = new Date().toISOString();
+
+      db.collection("compras").add({
+        usuarioId: usuario.uid,
+        nombre: usuario.displayName || nombre,
+        correo: usuario.email,
+        direccion: direccionCompleta,
+        fecha: fecha,
+        total: total,
+        productos: carrito.map(item => ({
+          id: item.id,
+          nombre: item.nombre,
+          precio: item.precio,
+          cantidad: item.cantidad || 1
+        }))
+      }).then(() => {
+        alert("Compra finalizada y guardada correctamente ✅");
+        localStorage.removeItem("carrito");
+        window.location.href = "gracias.html";
+      }).catch(error => {
+        console.error("Error al guardar la compra:", error);
+        alert("Hubo un error al guardar tu compra.");
+      });
+    }
+
+    window.onload = renderizarCarrito;
+  </script>
+</body>
+</html>

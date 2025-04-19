@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Equipos Informáticos</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background-color: #fff;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px 20px;
+      box-sizing: border-box;
+      z-index: 1000;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-title {
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .header-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .header-buttons button {
+      padding: 8px 16px;
+      font-size: 14px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background-color: #2196F3;
+      color: white;
+      transition: background-color 0.2s ease;
+    }
+
+    .header-buttons button:hover {
+      background-color: #1976D2;
+    }
+
+    .container {
+      margin-top: 100px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      max-width: 1000px;
+      padding: 20px;
+      margin-left: auto;
+      margin-right: auto;
+      box-sizing: border-box;
+      justify-items: center;
+    }
+
+    .product-card {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 300px;
+      padding: 15px;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+
+    .product-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .product-card img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .product-name {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .product-price {
+      font-size: 16px;
+      color: #4CAF50;
+      margin-bottom: 10px;
+    }
+
+    .product-quantity {
+      font-size: 14px;
+      color: #777;
+      margin-bottom: 15px;
+    }
+
+    .btn-details, .btn-cart {
+      background-color: #4CAF50;
+      color: white;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      margin: 5px;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+
+    .btn-details:hover, .btn-cart:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <div class="header-title">Equipos Informáticos</div>
+      <div class="header-buttons">
+        <button class="header-btn" onclick="agregarProducto()">➕ Agregar producto</button>
+        <button onclick="verCarrito()">🛒 Ver carrito</button>
+        <button onclick="window.location.href='../MyTienda.html'">🏠 Inicio</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container" id="product-list">
+    <!-- Productos se cargan aquí -->
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyD29FVCSz_1jwP9i22BphKQ8tgt4LOvtmk",
+      authDomain: "tiendabase-e4ec2.firebaseapp.com",
+      projectId: "tiendabase-e4ec2",
+      storageBucket: "tiendabase-e4ec2.firebasestorage.app",
+      messagingSenderId: "102646137349",
+      appId: "1:102646137349:web:df171f6bd42f8ba30a126c",
+      measurementId: "G-24YRP1L40Y"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    function agregarProducto() {
+      const categoriaActual = "Informáticos";
+      window.location.href = `../formulario_producto.html?categoria=${encodeURIComponent(categoriaActual)}`;
+    }
+
+    function cargarProductos() {
+      db.collection("productos")
+        .where("categoria", "==", "Informáticos")
+        .get()
+        .then(snapshot => {
+          snapshot.forEach(doc => {
+            const producto = doc.data();
+            crearProductoCard(producto, doc.id);
+          });
+        })
+        .catch(error => {
+          console.error("Error al cargar los productos: ", error);
+        });
+    }
+
+    function crearProductoCard(producto, id) {
+      const card = document.createElement("div");
+      card.classList.add("product-card");
+
+      const imagen = document.createElement("img");
+      imagen.src = producto.imagen;
+      imagen.alt = producto.nombre;
+
+      const nombre = document.createElement("div");
+      nombre.classList.add("product-name");
+      nombre.innerText = producto.nombre;
+
+      const precio = document.createElement("div");
+      precio.classList.add("product-price");
+      precio.innerText = `Precio: $${producto.precio}`;
+
+      const cantidad = document.createElement("div");
+      cantidad.classList.add("product-quantity");
+      cantidad.innerText = `Cantidad: ${producto.cantidad}`;
+
+      const btnDetalles = document.createElement("button");
+      btnDetalles.classList.add("btn-details");
+      btnDetalles.innerText = "Más detalles";
+      btnDetalles.onclick = () => mostrarDetalles(producto, id);
+
+      const btnCarrito = document.createElement("button");
+      btnCarrito.classList.add("btn-cart");
+      btnCarrito.innerText = "🛒 Añadir al carrito";
+      btnCarrito.onclick = () => agregarAlCarrito(producto, id);
+
+      card.appendChild(imagen);
+      card.appendChild(nombre);
+      card.appendChild(precio);
+      card.appendChild(cantidad);
+      card.appendChild(btnDetalles);
+      card.appendChild(btnCarrito);
+
+      document.getElementById("product-list").appendChild(card);
+    }
+
+    function mostrarDetalles(producto, id) {
+      const detalles = `
+        <h3>Detalles del Producto</h3>
+        <p><strong>Nombre:</strong> ${producto.nombre}</p>
+        <p><strong>Categoría:</strong> ${producto.categoria}</p>
+        <p><strong>Marca:</strong> ${producto.marca}</p>
+        <p><strong>Modelo:</strong> ${producto.modelo}</p>
+        <p><strong>Descripción 1:</strong> ${producto.descripcion1}</p>
+        <p><strong>Descripción 2:</strong> ${producto.descripcion2}</p>
+        <p><strong>Descripción 3:</strong> ${producto.descripcion3}</p>
+        <p><strong>Precio:</strong> $${producto.precio}</p>
+        <p><strong>Cantidad:</strong> ${producto.cantidad}</p>
+        <img src="${producto.imagen}" alt="${producto.nombre}" style="width: 100%; max-width: 300px; border-radius: 8px;">
+      `;
+      const detallesWindow = window.open("", "Detalles del Producto", "width=600,height=600");
+      detallesWindow.document.write(detalles);
+    }
+
+    function agregarAlCarrito(producto, id) {
+      let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+      const existente = carrito.find(item => item.id === id);
+      if (existente) {
+        existente.cantidad = (existente.cantidad || 1) + 1;
+      } else {
+        carrito.push({ id, ...producto, cantidad: 1 });
+      }
+      localStorage.setItem("carrito", JSON.stringify(carrito));
+      alert(`${producto.nombre} fue añadido al carrito 🛒`);
+    }
+
+    function verCarrito() {
+      localStorage.setItem("paginaAnterior", window.location.href);
+      window.location.href = "../carrito.html";
+    }
+
+    window.onload = cargarProductos;
+  </script>
+</body>
+</html>
