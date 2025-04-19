@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore-compat.js"></script>
+    <title>Tienda Web de Electrónicos</title>
+    <style>
+        .encabezado-tienda {
+            width: 100%;
+            background-color: #007acc;
+            color: white;
+            padding: 30px 0;
+            margin: 0;
+        }
+        .encabezado-tienda h1 {
+            font-size: 32px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .carousel-header {
+            display: flex;
+            overflow-x: auto;
+            gap: 50px;
+            padding: 0 20px 30px 20px;
+            scroll-snap-type: x mandatory;
+        }
+        .carousel-header img,
+        .carousel-header video {
+            flex: 0 0 auto;
+            width: 100%;
+            max-width: 400px;
+            max-height: 250px;
+            object-fit: cover;
+            border-radius: 10px;
+            scroll-snap-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            text-align: center;
+            padding-top: 20px;
+            margin-bottom: 20px;
+        }
+        .carousel-wrapper {
+            width: 90%;
+            max-width: 1200px;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            padding: 20px 0;
+        }
+        .carousel-container {
+            display: flex;
+            gap: 20px;
+            padding: 0 20px;
+        }
+        .product-card {
+            flex: 0 0 auto;
+            width: 300px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            scroll-snap-align: start;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            background-color: white;
+        }
+        .product-image {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 10px;
+        }
+        .product-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .product-price {
+            color: green;
+            font-weight: bold;
+        }
+        .contact-section {
+            width: 100%;
+            background-color: #333;
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .contact-section h2 {
+            margin-bottom: 20px;
+        }
+        .contact-section p {
+            margin: 5px 0;
+        }
+        .contact-button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #00aaff;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .contact-button:hover {
+            background-color: #007acc;
+        }
+    </style>
+</head>
+<body>
+<div class="encabezado-tienda">
+    <div class="carousel-header">
+        <img src="https://raw.githubusercontent.com/1485849/pruebita/refs/heads/main/Captura%20de%20pantalla%202025-04-12%20152026.png">
+        <img src="https://github.com/1485849/pruebita/blob/main/Captura%20de%20pantalla%202025-04-12%20152046.png?raw=true">
+        <img src="https://github.com/1485849/pruebita/blob/main/Captura%20de%20pantalla%202025-04-12%20152103.png?raw=true">
+        <img src="https://raw.githubusercontent.com/1485849/pruebita/refs/heads/main/Captura%20de%20pantalla%202025-04-12%20154714.png">
+    </div>
+</div>
+
+<h1>Nuestros Productos Destacados</h1>
+<div class="carousel-wrapper">
+    <div class="carousel-container">
+        <div class="product-card">
+            <img src="https://raw.githubusercontent.com/1485849/pruebita/refs/heads/main/UTIELS.jpg" class="product-image">
+            <h3 class="product-title">Accesorios de oficina</h3>
+            <button onclick="verDetalles('Accesorios_oficina')">Ver Detalles</button>
+        </div>
+        <div class="product-card">
+            <img src="https://www.zoluciones.com/home/wp-content/uploads/2022/10/importar-equipos-informaticos.jpg" class="product-image">
+            <h3 class="product-title">Equipos Informáticos</h3>
+            <button onclick="verDetalles('equipos_informaticos')">Ver Detalles</button>
+        </div>
+        <div class="product-card">
+            <img src="https://www.grupcasabella.com/media/catalog/category/Escritura_y_coreccion.jpg" class="product-image">
+            <h3 class="product-title">Materiales y instrumentos de escritura </h3>
+            <button onclick="verDetalles('Instrumentos_escritura')">Ver Detalles</button>
+        </div>
+        <div class="product-card">
+            <img src="https://image.jimcdn.com/app/cms/image/transf/dimension=627x10000:format=png/path/s9a60584458abfbed/image/i6d5f6db19e6c41a2/version/1497305882/image.png" class="product-image">
+            <h3 class="product-title">Materiales de organizacion</h3>
+            <button onclick="verDetalles('Material_organizacion')">Ver Detalles</button>
+        </div>
+        <div class="product-card">
+            <img src="https://www.materialescolar.es/blog/wp-content/uploads/2017/05/descarga-8.jpg" class="product-image">
+            <h3 class="product-title">Productos de Papeleria</h3>
+            <button onclick="verDetalles('Productos_papel')">Ver Detalles</button>
+        </div>
+        <div class="product-card">
+            <img src="https://promart.vteximg.com.br/arquivos/productos-de-limpieza.jpg?v=638182138569800000" class="product-image">
+            <h3 class="product-title">Productos de Limpieza</h3>
+            <button onclick="verDetalles('materiales_limpieza')">Ver Detalles</button>
+        </div>
+        <div class="product-card">
+            <img src="https://www.cliniccontrol.cloud/wp-content/uploads/2021/11/equipo-medico.jpg" class="product-image">
+            <h3 class="product-title">materiales de construccion</h3>
+            <button onclick="verDetalles('materiales_construccion')">Ver Detalles</button>
+        </div>
+        <div class="product-card">
+            <img src="https://www.kennertech.com.co/wp-content/uploads/2020/05/Soluciones-de-Nerg%C3%ADa-UPS-y-Bancos-de-Baterias-Banner.jpg" class="product-image">
+            <h3 class="product-title">....................</h3>
+            <button onclick="verDetalles('..........')">Ver Detalles</button>
+        </div>
+        <div class="product-card">
+            <img src="https://www.tecnicat.com.py/wp-content/uploads/cache/images/Tecnicat-Sistemas-de-Seguridad-Electronica/Tecnicat-Sistemas-de-Seguridad-Electronica-2276105709.jpg" class="product-image">
+            <h3 class="product-title">..........</h3>
+            <button onclick="verDetalles('..........')">Ver Detalles</button>
+        </div>
+        <div class="product-card">
+            <img src="https://www.cesurformacion.com/uploads/media/21-9-large/05/2455-automatizacion-y-robotica-industrial-salidas.jpg?v=1-0" class="product-image">
+            <h3 class="product-title"> .......... </h3>
+            <button onclick="verDetalles('..........')">Ver Detalles</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function verDetalles(id) {
+        switch (id) {
+            case 'Accesorios_oficina':
+                window.location.href = 'categorias/Accesorios_oficina.html'; break;
+            case 'equipos_informaticos':
+                window.location.href = 'categorias/equipos_informaticos.html'; break;
+            case 'Instrumentos_escritura':
+                window.location.href = 'categorias/Instrumentos_escritura.html'; break;
+            case 'Material_organizacion':
+                window.location.href = 'categorias/Material_organizacion.html'; break;
+            case 'Productos_papel':
+                window.location.href = 'categorias/Productos_papel.html'; break;
+            case 'materiales_limpieza':
+                window.location.href = 'categorias/materiales_limpieza.html'; break;
+            case 'materiales_construccion':
+                window.location.href = 'categorias/materiales_construccion.html'; break;
+            case '':
+                window.location.href = 'categorias/.html'; break;
+            case '':
+                window.location.href = 'categorias/.html'; break;
+            case '':
+                window.location.href = 'categorias/.html'; break;
+            default:
+                window.location.href = `categorias/detalle.html?id=${id}`;
+        }
+    }
+    </script>
+    
+
+<div class="contact-section">
+    <h2>¿Tienes preguntas o necesitas ayuda?</h2>
+    <p>📞 Teléfono: +51 9179248245</p>
+    <p>📧 Correo: heldyyanac31@gmail.com</p>
+    <button class="contact-button" onclick="location.href='mailto:heldyyanac31@gmail.com'">Enviar Mensaje</button>
+</div>
+</body>
+</html>

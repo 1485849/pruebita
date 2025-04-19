@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Agregar Producto</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .form-container {
+      background-color: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 500px;
+      text-align: center;
+    }
+
+    h2 {
+      color: #333;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"], input[type="number"], textarea {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    input[disabled] {
+      background-color: #eee;
+      color: #666;
+      cursor: not-allowed;
+    }
+
+    input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
+      border-color: #4CAF50;
+      outline: none;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      width: 100%;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .btn-volver {
+      background-color: #e0e0e0;
+      color: #333;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      width: 100%;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .btn-volver:hover {
+      background-color: #d5d5d5;
+      transform: scale(1.03);
+    }
+
+    .error-message {
+      color: red;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Agregar Producto</h2>
+    <form id="form-producto">
+      <input type="text" id="nombre" placeholder="Nombre" required><br>
+      <input type="text" id="categoria" placeholder="Categoría" required disabled><br>
+      <input type="text" id="marca" placeholder="Marca" required><br>
+      <input type="text" id="modelo" placeholder="Modelo" required><br>
+      <input type="text" id="imagen" placeholder="URL Imagen" required><br>
+      <input type="number" id="precio" placeholder="Precio" required><br>
+      <input type="number" id="cantidad" placeholder="Cantidad" required><br>
+      <textarea id="descripcion1" placeholder="Descripción 1" required></textarea><br>
+      <textarea id="descripcion2" placeholder="Descripción 2"></textarea><br>
+      <textarea id="descripcion3" placeholder="Descripción 3"></textarea><br>
+      <button type="submit">Guardar Producto</button>
+    </form>
+    <button onclick="volver()" class="btn-volver">⬅ Volver</button>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyD29FVCSz_1jwP9i22BphKQ8tgt4LOvtmk",
+      authDomain: "tiendabase-e4ec2.firebaseapp.com",
+      projectId: "tiendabase-e4ec2",
+      storageBucket: "tiendabase-e4ec2.firebasestorage.app",
+      messagingSenderId: "102646137349",
+      appId: "1:102646137349:web:df171f6bd42f8ba30a126c",
+      measurementId: "G-24YRP1L40Y"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Obtener categoría desde URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const categoria = urlParams.get('categoria');
+    if (categoria) {
+      document.getElementById('categoria').value = categoria;
+    }
+
+    document.getElementById('form-producto').addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const producto = {
+        nombre: document.getElementById('nombre').value,
+        categoria: categoria || document.getElementById('categoria').value,
+        marca: document.getElementById('marca').value,
+        modelo: document.getElementById('modelo').value,
+        imagen: document.getElementById('imagen').value,
+        precio: parseFloat(document.getElementById('precio').value),
+        cantidad: parseInt(document.getElementById('cantidad').value),
+        descripcion1: document.getElementById('descripcion1').value,
+        descripcion2: document.getElementById('descripcion2').value,
+        descripcion3: document.getElementById('descripcion3').value,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      db.collection("productos").add(producto)
+        .then(() => {
+          alert("Producto guardado con éxito");
+          document.getElementById('form-producto').reset();
+        })
+        .catch(error => {
+          alert("Error: " + error.message);
+        });
+    });
+
+    function volver() {
+      window.history.back();
+    }
+  </script>
+</body>
+</html>
